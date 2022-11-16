@@ -33,9 +33,13 @@ class Checkpoint extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(Request $request)
     {
-        //
+        $responses = Manifest::getManifest($request['manifest-code'], $request['vendor-code']);
+        if (!$responses['status']) {
+            return response($responses, 404);
+        }
+        return response($responses, 200);
     }
 
     /**
@@ -118,11 +122,29 @@ class Checkpoint extends Controller
      */
     public function show(Request $request)
     {
-        $responses = Manifest::getManifest($request['manifest-code'], $request['vendor-code']);
-        if (!$responses['status']) {
-            return response($responses, 404);
+        $listManifests = ModelsCheckpoint::getAllCheckpointManifest($request->branchCode, $request->limit, $request->lastId);
+        $table = "";
+        $lastId = 0;
+        foreach ($listManifests['dataFiltered'] as $manifest) {
+            $table .= "<tr>";
+            $status = "<div class='ui green inverted horizontal label'>Masuk</div>";
+            $action = "<div class='ui tiny buttons'><button class='ui yellow button'>Depart</button><div class='or'></div><button class='ui positive button'>Handling</button></div>";
+            if ($manifest->outcoming_at != null) {
+                $action = "";
+                $status = "<div class='ui red horizontal label'>Keluar</div>";
+            }
+            $table .= "<td>" . $manifest->transaction_code . " " . $status . "</td>";
+            $table .= "<td>" . $manifest->agen_alamat . "</td>";
+            $table .= "<td>" . $action . "</td>";
+            $table .= "</tr>";
+            $lastId = $manifest->id;
         }
-        return response($responses, 200);
+        $response = [
+            'table' => $table,
+            'lastId' => $lastId,
+            'countAll' => $listManifests['countAll'],
+        ];
+        return response()->json($response, 200);
     }
 
     public function fileUpload(Request $request)

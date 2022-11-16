@@ -14,6 +14,9 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/components/dimmer.min.css"
     integrity="sha512-n4WEB3bqIHq/JcKXGdsWDVyQKv42Q9C0VbVyPBg2em9nlsmwNeFWej/NUgSGJCsWemkecaq6oa0dCXrmuwyR+w=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.5.0/components/label.min.css"
+    integrity="sha512-OBzGLrGm1PXI9xLovCapqkylcXewOMthjAh9xLlCgSRgI0kQYnkgyOpQXW1k0ntXTLZq8suZ27EF9vnVECv9GQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href={{ asset('assets/modules/dropzonejs/dropzone.css') }}>
 <link rel="stylesheet" href={{ asset('assets/css/alertify.min.css') }} />
 <link rel="stylesheet" href="{{ asset('assets/css/theme/default.min.css') }}" />

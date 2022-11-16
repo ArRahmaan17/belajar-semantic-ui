@@ -23,12 +23,26 @@
     let weight = 0;
     let coli = 0;
     let volume = 0;
+    let branchCode;
     let filesUpload;
+    let lastId = 0;
     $(document).ready(function() {
         alertify.set('notifier', 'position', 'top-center');
         alertify.defaults.transition = "slide";
         alertify.defaults.theme.ok = "ui positive button";
         alertify.defaults.theme.cancel = "ui black button";
+
+        setTimeout(() => {
+            $('.ui.modal').modal({
+                blurring: true,
+                inverted: true,
+                closable: false,
+                transition: 'slide',
+                duration: 450,
+            }).modal('show');
+
+        }, 250);
+
         $(".item[data-tab='tab-checkpoint']").click(function() {
             alertify.confirm('Please Confirm Your Action',
                 'Are you sure to do the checkpoint again ?',
@@ -45,20 +59,14 @@
                 },
                 function() {
                     alertify.error('Your Are Canceling The Action')
+                    changeTab();
                 });
 
         })
-        setTimeout(() => {
-            $('.ui.modal').modal({
-                blurring: true,
-                inverted: true,
-                closable: false,
-                transition: 'slide',
-                duration: 450,
-            }).modal('show');
 
-        }, 250);
         $('.tabular.menu .item').tab();
+        $('select.dropdown').dropdown();
+
         $("#manifest-search-button").click(function() {
             requiredInputs = [
                 'vendor-code,vendor-input',
@@ -79,10 +87,11 @@
                     $(`#${input[1]}`).removeClass('error');
                 }
             });
+            branchCode = $("#vendor-code").val();
             payload['_token'] = _token;
             $.ajax({
                 type: "POST",
-                url: `<?= url('/checkpoint/show') ?>`,
+                url: `<?= url('/checkpoint/create') ?>`,
                 data: {
                     ...payload
                 },
@@ -119,6 +128,7 @@
                 }
             });
         });
+
         $("#fileupload").dropzone({
             url: "/checkpoint/upload-file",
             paramName: "file", // The name that will be used to transfer the file
@@ -143,6 +153,7 @@
                 });
             }
         });
+
         $("#button-checkpoint-manifest").click(function() {
             alertify.confirm('Please Confirm Your Action',
                 'Are Your Sure To Save Your Checkpoint Prosess',
@@ -155,50 +166,83 @@
                 });
         });
 
-        function saveCheckpoint() {
-            let manifestCode = $("#checkpoint-manifest-code").val();
-            let description = $("#checkpoint-manifest-description").val();
-            let recipient = $("#checkpoint-manifest-recipient").val();
-            let manifestId = $("#checkpoint-manifest-id").val();
-            let branchId = $("#checkpoint-manifest-branch-id").val();
-            let branchCode = $("#checkpoint-manifest-branch-code").val();
-            let payload = {
-                _token,
-                manifestId,
-                manifestCode,
-                description,
-                recipient,
-                branchCode,
-                branchId,
-            };
-
+        $(".item[data-tab='tab-manifest-checkpoint']").click(function() {
+            var limit = $("#limit-checkpoint").val();
             $.ajax({
-                method: "POST",
-                url: "/checkpoint/store",
+                type: "POST",
+                url: `<?= url('checkpoint/show') ?>`,
                 data: {
-                    ...payload
+                    _token,
+                    branchCode,
+                    limit,
+                    lastId,
                 },
                 dataType: "JSON",
-                beforeSend: function() {
-                    $("#button-checkpoint-manifest").addClass('loading');
-                },
                 success: function(response) {
-                    $("button[type=submit]").click().promise().then(() => {
-                        $("#button-checkpoint-manifest").removeClass('loading');
-                        clearAll();
-                        changeTab();
-                    });
-                },
-                error: (errors) => {
-                    errors = Object.values(errors.responseJSON.errors)
-                    errors.forEach(error => {
-                        alertify.error(error[0]).dismissOthers();
-                    });
-                    $("#button-checkpoint-manifest").removeClass('loading');
+                    $("#table-list-manifest").html(response.table);
+                    lastId = response.lastId
+                    if (response.countAll <= limit) {
+                        $(".ui.right.floated.pagination.menu>.icon.right.item")
+                            .addClass('disabled');
+                    } else {
+                        $(".ui.right.floated.pagination.menu>.icon.right.item")
+                            .removeClass('disabled');
+                    }
+                    if (lastId != 0 && (lastId - limit >= 0)) {
+                        $(".ui.right.floated.pagination.menu>.icon.left.item")
+                            .removeClass('disabled');
+                    } else {
+                        $(".ui.right.floated.pagination.menu>.icon.left.item")
+                            .addClass('disabled');
+                    }
                 }
             });
-        }
+        });
     });
+
+    function saveCheckpoint() {
+        let manifestCode = $("#checkpoint-manifest-code").val();
+        let description = $("#checkpoint-manifest-description").val();
+        let recipient = $("#checkpoint-manifest-recipient").val();
+        let manifestId = $("#checkpoint-manifest-id").val();
+        let branchId = $("#checkpoint-manifest-branch-id").val();
+        let branchCode = $("#checkpoint-manifest-branch-code").val();
+        let payload = {
+            _token,
+            manifestId,
+            manifestCode,
+            description,
+            recipient,
+            branchCode,
+            branchId,
+        };
+
+        $.ajax({
+            method: "POST",
+            url: "/checkpoint/store",
+            data: {
+                ...payload
+            },
+            dataType: "JSON",
+            beforeSend: function() {
+                $("#button-checkpoint-manifest").addClass('loading');
+            },
+            success: function(response) {
+                $("button[type=submit]").click().promise().then(() => {
+                    $("#button-checkpoint-manifest").removeClass('loading');
+                    clearAll();
+                    changeTab();
+                });
+            },
+            error: (errors) => {
+                errors = Object.values(errors.responseJSON.errors)
+                errors.forEach(error => {
+                    alertify.error(error[0]).dismissOthers();
+                });
+                $("#button-checkpoint-manifest").removeClass('loading');
+            }
+        });
+    }
 
     function changeTab() {
         $("div[data-tab='tab-manifest-checkpoint']").addClass('active');

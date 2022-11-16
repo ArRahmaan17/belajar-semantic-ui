@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', Home::class);
 Route::get('/checkpoint/{tokenAuthentication}', [Checkpoint::class, 'index']);
+Route::post('/checkpoint/create', [Checkpoint::class, 'create']);
 Route::post('/checkpoint/show', [Checkpoint::class, 'show']);
 Route::post('/checkpoint/upload-file', [Checkpoint::class, 'fileUpload']);
 Route::post('/checkpoint/store', [Checkpoint::class, 'store']);
